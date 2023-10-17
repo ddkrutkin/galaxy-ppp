@@ -1,5 +1,23 @@
 <?xml version='1.0' encoding='utf-8'?>
 <toolbox monitor="true">
+  <label id="ppp" text="PPP Functions"/>
+  <section id="ppp_vcf" name="VCF Functions">
+    <tool file="ppp/vcf_filter.xml" />
+    <tool file="ppp/vcf_split.xml" />
+    <tool file="ppp/vcf_phase.xml" />
+    <tool file="ppp/four_gamete_wrapper.xml" />
+    <tool file="ppp/interval_filter_wrapper.xml" />
+    <tool file="ppp/vcf_region_wrapper.xml" />
+    <tool file="ppp/vcf_ima_wrapper.xml" />
+  </section>
+  <section  id="ppp_stat" name="Statistic Functions">
+      <tool file="ppp/stat_sampler.xml" />
+      <tool file="ppp/vcf_calc.xml" />
+  </section>
+  <section id="ppp_analyses" name="PPP Analyses">
+  	<tool file="ppp/ima3.xml" />
+  </section>
+  <label id="std_gal" text="Galaxy Tools" />
   <section id="getext" name="Get Data">
     <tool file="data_source/upload.xml" />
     <tool file="data_source/ucsc_tablebrowser.xml" />
@@ -42,7 +60,6 @@
     <tool file="${model_tools_path}/build_list.xml" />
     <tool file="${model_tools_path}/build_list_1.2.0.xml" />
     <tool file="${model_tools_path}/extract_dataset.xml" />
-    <tool file="${model_tools_path}/duplicate_file_to_collection.xml" />
   </section>
   <section id="expression_tools" name="Expression Tools">
     <tool file="expression_tools/parse_values_from_file.xml"/>
@@ -96,6 +113,7 @@
   </section>
   <section id="fetchAlignSeq" name="Fetch Alignments/Sequences">
     <tool file="maf/interval2maf_pairwise.xml" />
+    <tool file="maf/interval2maf.xml" />
     <tool file="maf/maf_split_by_species.xml" />
     <tool file="maf/interval_maf_to_merged_fasta.xml" />
     <tool file="maf/genebed_maf_to_fasta.xml" />
@@ -120,23 +138,24 @@
     <tool file="maf/vcf_to_maf_customtrack.xml" />
   </section>
   <section id="hgv" name="Phenotype Association">
+    <tool file="evolution/codingSnps.xml" />
+    <tool file="evolution/add_scores.xml" />
     <tool file="phenotype_association/sift.xml" />
     <tool file="phenotype_association/linkToGProfile.xml" />
     <tool file="phenotype_association/linkToDavid.xml" />
     <tool file="phenotype_association/ldtools.xml" />
     <tool file="phenotype_association/master2pg.xml" />
   </section>
-  <!--
-  <section id="interactivetools" name="Interactive tools">
+
+  <!--section id="interactivetools" name="Interactive tools">
+    <tool file="interactive/codingSnps.xml" />
     <tool file="interactive/interactivetool_askomics.xml" />
     <tool file="interactive/interactivetool_bam_iobio.xml" />
     <tool file="interactive/interactivetool_cellxgene.xml" />
     <tool file="interactive/interactivetool_ethercalc.xml" />
     <tool file="interactive/interactivetool_hicbrowser.xml" />
-    <tool file="interactive/interactivetool_jupyter_notebook_1.0.0.xml" />
     <tool file="interactive/interactivetool_jupyter_notebook.xml" />
     <tool file="interactive/interactivetool_neo4j.xml" />
     <tool file="interactive/interactivetool_phinch.xml" />
-  </section>
-  -->
+  </section-->
 </toolbox>

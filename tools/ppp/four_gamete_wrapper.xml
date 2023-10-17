@@ -1,0 +1,179 @@
+<tool id="fourgamete" name="Four Gamete Test" version="0.1">
+    <requirements>
+        <requirement type="package">pysam</requirement>
+        <requirement type="package">bcftools</requirement>
+    </requirements>
+    <stdio>
+        <exit_code range="1:" level="fatal" />
+    </stdio>
+    <description>Tests a VCF file for a subregion that passes four gamete test</description>
+    <command>
+        <![CDATA[
+            python $__tool_directory__/four_gamete.py
+            --vcfs $input
+            --out $output
+            #if str($test_arg) == 'hk':
+            --hk
+            #else:
+            --fourgcompat 
+            #end if 
+            #if str($return.return_arg) == 'reti':
+            --reti
+            #if str($return.select_arg) == 'left':
+            --left
+            #elif str($return.select_arg) == 'right':
+            --right
+            #elif str($return.select_arg) == 'randomi':
+            --rani
+            #elif str($return.select_arg) == 'maxlen':
+            --maxlen
+            #else:
+            --ranb
+            #end if
+            #else:
+            --retl
+            #end if
+            --numinf $infsites
+            #if  $input.is_of_type('vcf_bgzip')
+                --tbi $input.metadata.tabix_index
+            #end if
+            $ovlps
+            $ovlpi
+
+        ]]>
+
+    </command>
+    <inputs>
+        <param format="vcf,vcf_bgzip,bcf" name="input" type="data" label="VCF input" />
+        <param type="integer" name="infsites" label="Number of informative sites required in subregion" value="2" min="0" />
+        <param name='test_arg' type='select' label='Test Type'>
+            <option value="hk">HK (one or more recomb events)</option>
+            <option value='4gcompat'>Intervals with Zero recombination</option>
+        </param>
+        
+        <conditional name='return'>
+          <param name='return_arg' type='select' label='Return Regions'>
+              <option value='reti'>Return Single Region</option>
+              <option value='retl'>Return all passing regions</option>
+          </param>
+          
+          <when value='reti'>
+		<param name="select_arg" type="select" label="Subregion to Select">
+		    <option value="left">Left-most</option>
+		    <option value="right" selected="True">Right-most</option>
+		    <option value="randomi">Random (equal probability per region)</option>
+		    <option value="randomb">Random (probability equal to size)</option>
+		    <option value="maxlen">Longest Subregion</option>
+		</param>
+	   </when>
+	</conditional>
+        <param type="boolean" name="ovlps" truevalue="--ovlps" falsevalue="" label="Include non-informative variants between edge of region and variant that breaks region" />
+        <param type="boolean" name="ovlpi" truevalue="--ovlpi" falsevalue="" label="Include informative variants from overlapping regions" />
+        
+    </inputs>
+    <outputs>
+        <data format="vcf" name="output"/>
+    </outputs>
+    <help>
+    <![CDATA[
+
+    Input VCF will be examined for regions that pass the four-gamete test, which indicates 
+    there have been no recombination in this region for this sample. For most cases, a failure 
+    of the four-gamete test occurs when two SNPs have four gametes between them. (00,01,10,11) 
+    Using selection criteria, a region with the target number of informative SNPs that passes 
+    the four-gamete criteria will be output to a VCF file.
+    
+    Given input with individual variants over a region of the genome, 
+    generate an interval within those variants that passes the 
+    four-gamete filtering criteria, then return either that interval
+    or an output file with variants in that interval.
+
+    The four-gamete test is a method for determining whether or not 
+    there has been recombination between a pair of variants. To do this, 
+    all individuals have haplotypes defined as the variants at the two
+    sites. Given two snps with ref/alt alleles A/G and C/T, if 
+    individuals in this sample have haplotypes AC, AT, and GT, it is
+    possible that there has been no recombination between these alleles.
+    If an additional individual has the GC haplotype, this means that 
+    a recombination event must have taken place between the sites. 
+
+    This test must be done on phased data.
+
+    Common usage for this function is to input a VCF file that contains
+    variants for individuals at a single locus, with output returned being
+    a VCF that contains a subsample of these variants. A full VCF can be 
+    used with --vcfreg, where the second argument is a BED file with one
+    or more regions, output will be either a VCF for four-gamete passing 
+    regions or a new BED file with the truncated regions.
+
+    ###############
+    Input Arguments
+    ###############
+    **--vcfs** *<input_vcf_1>*...*<input_vcf_n>*
+        Input name of one or more VCF files, where each VCF represents
+        a locus. 
+    **--vcfreg** *<input_vcf>* *<BED file>*
+        Input name of VCF file containing genome data and name of BED file
+        with regions to be analyzed.
+
+    ###############
+    Output Aguments
+    ###############
+    **--out** *<output_filename>*
+        Name for output file.
+    **--out-prefix** *<ouput_prefix>*
+        If multiple files are output, this option is required to set a 
+        prefix for the output files.
+
+    ##################
+    Interval Arguments
+    ##################
+    **--numinf** *<minimum informative site count>*
+        Region returned must have at least n informative sites, defaults to 1
+    **--hk**
+        If set, returns intervals with at least one recombination event 
+        instead of regions with no recombination.
+    **--reti**
+        This script will generate a list of valid regions with no
+        recombination. Selecting this option will return a single interval
+        as specified by other arguments
+    **--retl**
+        Returns all valid intervals, either as a list of intervals or 
+        multiple output files
+
+
+    ################################
+    Single Returned Region Arguments
+    ################################
+    Select one of:
+    **--rani**
+        Returns random interval (default)
+    **--ranb**
+        Returns random interval, with probability of interval 
+        proportional to interval length
+    **--left**
+        Return first interval with enough informative sites
+    **--right**
+        Return last interval with enough informative sites
+    **--maxlen**
+        Return interval with most informative sites
+
+    ###############
+    Other Arguments
+    ###############
+    **--remove-multiallele**
+        Removes multi-alleleic sites from analysis
+    **--include-missing**
+        Include sites with missing data in analysis
+    **--ovlps**
+        Extend region to include non-informative variants between
+        an edge variant and a variant that breaks the four-gamete
+        criteria
+    **--ovlpi**
+        Include informative variants from overlapping
+        regions
+
+    ]]>
+
+    </help>
+</tool>
